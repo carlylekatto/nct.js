@@ -1,0 +1,51 @@
+{
+  "name": "nct.js",
+  "version": "1.0.0",
+  "description": "A lightweight, zero-dependency Node.js client library for the NhacCuaTui (NCT) API, supporting search, stream extraction, lyrics parsing, and VIP user logins.",
+  "main": "./dist/cjs/index.js",
+  "module": "./dist/esm/index.js",
+  "types": "./dist/cjs/index.d.ts",
+  "exports": {
+    ".": {
+      "require": {
+        "types": "./dist/cjs/index.d.ts",
+        "default": "./dist/cjs/index.js"
+      },
+      "import": {
+        "types": "./dist/esm/index.d.ts",
+        "default": "./dist/esm/index.js"
+      }
+    }
+  },
+  "scripts": {
+    "build": "node -e \"const fs=require('fs'); fs.rmSync('dist', { recursive: true, force: true })\" && tsc && tsc -p tsconfig.esm.json && node scripts/postbuild.js",
+    "pretest": "npm run build",
+    "test": "node tests/test.js"
+  },
+  "keywords": [
+    "nhaccuatui",
+    "nct",
+    "music",
+    "api",
+    "stream",
+    "crawler",
+    "client",
+    "zero-dependency",
+    "discord-bot"
+  ],
+  "author": "carlylekatto",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/carlylekatto/nct.js.git"
+  },
+  "bugs": {
+    "url": "https://github.com/carlylekatto/nct.js/issues"
+  },
+  "homepage": "https://github.com/carlylekatto/nct.js#readme",
+  "license": "MIT",
+  "type": "commonjs",
+  "devDependencies": {
+    "@types/node": "^25.9.3",
+    "typescript": "^6.0.3"
+  }
+}
