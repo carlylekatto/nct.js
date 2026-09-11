@@ -28,6 +28,9 @@ export const ENDPOINTS = {
   POPUP_CONFIG: '/api/v1/user/configure/popup',
   ACTIVITY_INFO: '/api/v1/app/activity/info',
   TOPIC_CATEGORIES: '/api/v1/topics/categories',
+  TOPIC_PLAYLISTS_BY_TAG: '/v7/playlists/tag',
+  CHARTS: '/api/v1/playlist/charts',
+  PLAYLIST_RELATED: '/api/v1/playlist/related',
 } as const;
 
 export const DEFAULT_HEADERS = {

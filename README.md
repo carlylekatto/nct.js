@@ -97,7 +97,11 @@ const nct = new NhacCuaTui({
 
 ### Details & Recommendations
 - **`getSongDetail(songKey)`**: Returns metadata, artist list, duration, and direct CDNs/streaming URLs.
-- **`getPlaylistDetail(playlistKey)`**: Returns playlist/album metadata along with its track list.
+- **`getPlaylistDetail(playlistKey, page = 1, size = 100)`**: Returns playlist/album metadata along with its track list (paginated; detail pages are one-based).
+- **`getRelatedPlaylists(playlistKey, page = 0, size = 20)`**: Returns playlists related to a playlist/album.
+- **`getTopicPlaylistsByTag(keys, page = 1, size = 30)`**: Returns playlists matching a topic tag (e.g. `"tiktok"`).
+- **`getCharts()`**: Lists currently available music charts with keys usable in `getChartDetail`.
+- **`getChartDetail(chartKey)`**: Returns the ranked song list of a chart period (e.g. `"1-5-d254-2026"`).
 - **`getLyrics(songKey)`**: Returns lyrics (either plain text or parsed timestamped LRC lines).
 - **`getSimilarSongs(songKey, page = 1, size = 20)`**: Returns recommended similar tracks (useful for autoplay).
 

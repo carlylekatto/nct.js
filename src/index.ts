@@ -5,6 +5,7 @@ export { LogLevel };
 import {
   cleanSong,
   cleanPlaylist,
+  cleanChart,
   parseLyrics,
   Song,
   Playlist,
@@ -22,7 +23,9 @@ import {
   SearchLyricsResult,
   NotificationItem,
   TopicCategory,
-  TopicCategoryDetailSection
+  TopicCategoryDetailSection,
+  ChartInfo,
+  ChartDetail
 } from './utils';
 
 export interface NhacCuaTuiConfig {
@@ -168,13 +171,96 @@ export class NhacCuaTui {
 
   /**
    * Fetch playlist or album tracklist and metadata
-   * @param {string} playlistKey 
+   * @param {string} playlistKey
+   * @param {number} [page=1] One-based page index (pn). NOTE: unlike the
+   * pn-based follow endpoints (zero-based), the detail endpoint is
+   * one-based — pn=0 returns an empty track list.
+   * @param {number} [size=100] Page size (rn). Defaults to 100 so large
+   * playlists are not silently truncated by the API default page size.
    * @returns {Promise<Playlist | null>}
    */
-  public async getPlaylistDetail(playlistKey: string): Promise<Playlist | null> {
+  public async getPlaylistDetail(playlistKey: string, page: number = 1, size: number = 100): Promise<Playlist | null> {
     if (!playlistKey) throw new Error('playlistKey is required');
-    const data = await this._request(`${ENDPOINTS.PLAYLIST_DETAIL}/${playlistKey}`);
+    const data = await this._request(`${ENDPOINTS.PLAYLIST_DETAIL}/${playlistKey}`, {
+      key: playlistKey,
+      pn: page,
+      rn: size
+    });
     return cleanPlaylist(data);
+  }
+
+  /**
+   * Fetch playlists related to a playlist or album
+   * @param {string} playlistKey
+   * @param {number} [page=0] Zero-based page index (pn)
+   * @param {number} [size=20] Page size (rn)
+   * @returns {Promise<Playlist[]>} Related playlists (without embedded track lists)
+   */
+  public async getRelatedPlaylists(playlistKey: string, page: number = 0, size: number = 20): Promise<Playlist[]> {
+    if (!playlistKey) throw new Error('playlistKey is required');
+    const data = await this._request(`${ENDPOINTS.PLAYLIST_RELATED}/${playlistKey}`, {
+      key: playlistKey,
+      pn: page,
+      rn: size
+    });
+    const list = Array.isArray(data) ? data : (data?.list || []);
+    return list.map(cleanPlaylist).filter((p: any): p is Playlist => p !== null);
+  }
+
+  /**
+   * Fetch playlists by topic tag (e.g. "tiktok", "vpop")
+   * @param {string | string[]} keys Tag key or list of tag keys
+   * @param {number} [page=1] One-based page index (pageindex)
+   * @param {number} [size=30] Page size (pagesize)
+   * @returns {Promise<Playlist[]>} Matching playlists (without embedded track lists)
+   */
+  public async getTopicPlaylistsByTag(keys: string | string[], page: number = 1, size: number = 30): Promise<Playlist[]> {
+    const tagKeys = Array.isArray(keys) ? keys.join(',') : keys;
+    if (!tagKeys) throw new Error('keys is required');
+    const data = await this._request(ENDPOINTS.TOPIC_PLAYLISTS_BY_TAG, {
+      keys: tagKeys,
+      pageindex: page,
+      pagesize: size
+    });
+    const list = Array.isArray(data) ? data : (data?.list || []);
+    return list.map(cleanPlaylist).filter((p: any): p is Playlist => p !== null);
+  }
+
+  /**
+   * Fetch the index of currently available music charts
+   * @returns {Promise<ChartInfo[]>} Chart entries with keys usable in getChartDetail
+   */
+  public async getCharts(): Promise<ChartInfo[]> {
+    const data = await this._request(ENDPOINTS.CHARTS);
+    const list = Array.isArray(data) ? data : (data?.list || []);
+    return list.map(cleanChart).filter((c: any): c is ChartInfo => c !== null);
+  }
+
+  /**
+   * Fetch the ranked song list of a specific chart period
+   * (e.g. key "1-5-d254-2026" from a www.nhaccuatui.com/chart/{key} URL
+   * or from getCharts())
+   * @param {string} chartKey Chart key such as "1-5-d254-2026"
+   * @returns {Promise<ChartDetail | null>}
+   */
+  public async getChartDetail(chartKey: string): Promise<ChartDetail | null> {
+    if (!chartKey) throw new Error('chartKey is required');
+    const data = await this._request(`${ENDPOINTS.CHARTS}/${chartKey}`);
+    if (!data) return null;
+    const chart = cleanChart({
+      id: data.id,
+      key: data.key || chartKey,
+      name: data.name,
+      title: data.title,
+      titleDetail: data.titleDetail,
+      tag: data.tag,
+      image: data.image
+    });
+    if (!chart) return null;
+    return {
+      chart,
+      songs: ((data.items || []).map(cleanSong)).filter((s: any): s is Song => s !== null)
+    };
   }
 
   /**

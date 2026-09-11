@@ -221,8 +221,52 @@ async function runTests() {
       });
     });
 
-    // 25. Test Log Levels Logging Output
-    console.log('\n[25] Testing Log Levels debug output...');
+    // 25. Test getCharts() + getChartDetail()
+    console.log('\n[25] Testing getCharts()...');
+    const chartIndex = await nct.getCharts();
+    console.log(`✅ Success! Found ${chartIndex.length} charts.`);
+    chartIndex.slice(0, 3).forEach(c => {
+      console.log(`   - Chart: "${c.title}" [Key: ${c.key}]`);
+    });
+    if (chartIndex.length > 0) {
+      console.log(`\n[26] Testing getChartDetail("${chartIndex[0].key}")...`);
+      const chartDetail = await nct.getChartDetail(chartIndex[0].key);
+      console.log(`✅ Success! Chart "${chartDetail.chart.title}" has ${chartDetail.songs.length} songs.`);
+      if (chartDetail.songs.length > 0) {
+        console.log(`   - Top song: "${chartDetail.songs[0].name}" by "${chartDetail.songs[0].primaryArtist.name}"`);
+      }
+    }
+
+    // 27. Test getRelatedPlaylists()
+    console.log('\n[27] Testing getRelatedPlaylists()...');
+    const plSearch2 = await nct.searchPlaylists('viet', 1, 1);
+    if (plSearch2.playlists.length > 0) {
+      const related = await nct.getRelatedPlaylists(plSearch2.playlists[0].key, 0, 3);
+      console.log(`✅ Success! Found ${related.length} related playlists.`);
+      related.forEach(p => {
+        console.log(`   - Related: "${p.name}" (isAlbum: ${p.isAlbum})`);
+      });
+    } else {
+      console.log('⚠️ No playlist found for related test.');
+    }
+
+    // 28. Test getTopicPlaylistsByTag()
+    console.log('\n[28] Testing getTopicPlaylistsByTag("tiktok")...');
+    const tagged = await nct.getTopicPlaylistsByTag('tiktok', 1, 3);
+    console.log(`✅ Success! Found ${tagged.length} tagged playlists.`);
+    tagged.forEach(p => {
+      console.log(`   - Tagged: "${p.name}" [Key: ${p.key}]`);
+    });
+
+    // 29. Test getPlaylistDetail() pagination
+    console.log('\n[29] Testing getPlaylistDetail() pagination...');
+    if (plSearch2.playlists.length > 0) {
+      const full = await nct.getPlaylistDetail(plSearch2.playlists[0].key);
+      console.log(`✅ Success! Playlist "${full.name}" has ${full.songs.length}/${full.songCount} songs (isAlbum: ${full.isAlbum}).`);
+    }
+
+    // 30. Test Log Levels Logging Output
+    console.log('\n[30] Testing Log Levels debug output...');
     const debugNct = new NhacCuaTui({ logLevel: 'debug' });
     console.log('--- Triggering debug logs for getHotKeywords() ---');
     await debugNct.getHotKeywords();

@@ -62,11 +62,29 @@ export interface Playlist {
   viewCount: number;
   likeCount: number;
   songCount: number;
+  isAlbum: boolean;
+  artists: Artist[];
+  tagKey: string;
   creator: {
     userId: string | number | null;
     username: string;
     avatar: string;
   };
+  songs: Song[];
+}
+
+export interface ChartInfo {
+  id: number | string;
+  key: string;
+  name: string;
+  title: string;
+  titleDetail: string;
+  tag: string;
+  thumbnail: string;
+}
+
+export interface ChartDetail {
+  chart: ChartInfo;
   songs: Song[];
 }
 
@@ -258,7 +276,7 @@ export function cleanSong(song: any): Song | null {
     name: song.name || '',
     thumbnail: song.image || '',
     bgImage: song.bgImage || '',
-    duration: song.duration || 0,
+    duration: Number(song.duration) || 0,
     viewCount: song.viewed || 0,
     likeCount: song.totalLiked || 0,
     shareCount: song.shareCnt || 0,
@@ -312,12 +330,36 @@ export function cleanPlaylist(playlist: any): Playlist | null {
     viewCount: playlist.viewed || 0,
     likeCount: playlist.totalLiked || 0,
     songCount: playlist.totalSongs || 0,
+    isAlbum: !!playlist.isAlbum,
+    artists: (playlist.listArtist || []).map((a: any) => ({
+      key: a.key || '',
+      name: a.name || '',
+      thumbnail: a.image || ''
+    })),
+    tagKey: playlist.tagKey || '',
     creator: {
       userId: playlist.userId || null,
       username: playlist.userCreated || '',
       avatar: playlist.userAvatar || ''
     },
     songs: (playlist.listSong || []).map(cleanSong).filter((s: any): s is Song => s !== null)
+  };
+}
+
+/**
+ * Cleans a chart entry returned by the charts index endpoint
+ */
+export function cleanChart(chart: any): ChartInfo | null {
+  if (!chart) return null;
+
+  return {
+    id: chart.id ?? '',
+    key: chart.key || '',
+    name: chart.name || '',
+    title: chart.title || chart.titleDetail || '',
+    titleDetail: chart.titleDetail || '',
+    tag: chart.tag || '',
+    thumbnail: chart.image || ''
   };
 }
 
